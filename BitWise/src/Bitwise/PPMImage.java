@@ -41,6 +41,8 @@ public class PPMImage {
             this.height = Integer.parseInt(height);
 
             this.maxColorValue = Integer.parseInt(br.readLine()); //Max Color Value
+            
+            // System.out.println(this.magicNumber + " " + this.width + " " + this.height + " " + this.maxColorValue);
 
             this.raster = new char[this.width][this.height][3]; //Raster
 
@@ -77,7 +79,7 @@ public class PPMImage {
         return result;
     }
     public static void main(String[] args) {
-        String fileName = "C:/Users/airsh/Desktop/Current Classes/CS4112/Bitwise/bitwise/test.txt";
+        String fileName = "C:\\PathTest\\cat.ppm";
         File image = new File(fileName);
         PPMImage program = new PPMImage(image);
     }
