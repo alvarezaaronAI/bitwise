@@ -47,16 +47,15 @@ public class PPMImage {
             int c;
             while((c = br.read()) > 0) {//While there is still text in the file, it will read the file character by character
                 
-                // System.out.print(c + " ");
-                // Character string = new Character((char)c); //Make the int to char to String
-                // System.out.println(string.toString()); //Prints out the String
+                System.out.print(c + " ");
+                Character string = new Character((char)c); //Make the int to char to String
+                System.out.println(string.toString()); //Prints out the String
             }
             for(int x = this.width; x < raster.length; x++) {
                 for(int y = this.height; y < raster[x].length; y++) {
-                    if(c = br.read() ) {
-
-                    }
-                    raster[x][y][0] = c;
+                    // if(c = br.read() ) {
+                    //     raster[x][y][0] = (char)c;
+                    // }
                 }
             }
 
