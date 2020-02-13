@@ -57,13 +57,12 @@ public class PPMImage {
             // Character string = new Character((char)c); //Make the int to char to String
             // System.out.println(string.toString()); //Prints out the String
             // }
-            for (int x = this.width; x < raster.length; x++) {
-                for (int y = this.height; y < raster[x].length; y++) {
+            for (int x = 0; x < raster.length; x++) {
+                for (int y = 0; y < raster[x].length; y++) {
                     try {
                         char temp1 = (char) br.read();
                         char temp2 = (char) br.read();
                         char temp3 = (char) br.read();
-
                         this.raster[x][y][0] = temp1;
                         this.raster[x][y][1] = temp2;
                         this.raster[x][y][2] = temp3;
