@@ -92,6 +92,10 @@ public class PPMImage {
     public static void main(String[] args) {
         String fileName = "C:\\PathTest\\cat.ppm";
         File image = new File(fileName);
-        PPMImage program = new PPMImage(image);
+        //PPMImage program = new PPMImage(image);
+        char one = 1;
+        char temp = 'A';
+        char result = (char) (one & temp);
+        System.out.println(result + "");
     }
 }
