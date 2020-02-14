@@ -80,11 +80,27 @@ public class PPMImage {
         }
     }
 
-    public void hideDate(String message) {
+    public void hideData(String message) {
+        for (int count = 0; count < message.length(); count++) {
+            char temp0 = message.charAt(count);
+            int numOfBits = 1; //Determine what nth bit of message to look at
+            for (int x = 0; x < this.width; x++) {
+                for (int y = 0; y < this.height; y++) {
+                    char temp1 = this.raster[x][y][0];
+                    char temp2 = this.raster[x][y][1];
+                    char temp3 = this.raster[x][y][2];
 
+                    // Get right end of RGB
+                    int rightEnd1 = temp1 & 1;
+                    int rightEnd2 = temp2 & 1;
+                    int rightEnd3 = temp3 & 1;
+
+                }
+            }
+        }
     }
 
-    public String recoverDate() {
+    public String recoverData() {
         String result = "";
         return result;
     }
@@ -92,10 +108,30 @@ public class PPMImage {
     public static void main(String[] args) {
         String fileName = "C:\\PathTest\\cat.ppm";
         File image = new File(fileName);
-        //PPMImage program = new PPMImage(image);
-        char one = 1;
-        char temp = 'A';
-        char result = (char) (one & temp);
-        System.out.println(result + "");
+        // PPMImage program = new PPMImage(image);
+        char temp = 'M';
+        char mask = 1 << (1 - 1);
+        System.out.println("M: " + (int)temp);
+        // Check status of the first bit of M
+        int status = (temp & mask);
+        System.out.println("The First bit of M: " + " " + status);
+
+        // Value of end right of RGB
+        int rightEnd1 = 'A' & 1;
+        System.out.println("Value of A: " + (int)'A');
+
+        System.out.println("Value of end right of RGB(A): " + rightEnd1);
+        
+        // Compage Right End with the first bit of M
+        if (rightEnd1 != status) {
+            // Change it to result's binary number
+            char mask2 = (char) (status << (1 - 1));
+            char newRightEnd = (char) (rightEnd1 | mask2);
+            System.out.println("Changed the RGB VALUE: " + " " + newRightEnd);
+        }
+        else {
+            //So if they are the same no Change
+            System.out.println("No Change");
+        }
     }
 }
