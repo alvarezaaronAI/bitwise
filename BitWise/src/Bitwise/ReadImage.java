@@ -8,9 +8,9 @@ public class ReadImage {
 //		   char value = 'F';
 //		   System.out.println( value + " : " + binaryPrint(value));
 //		   char result = turnBitOff(value, 2);
-//		   System.out.println(result + " : " + binaryPrint(result));
-		   char[] test= { 'A','B','C', 'D','E','F', 'G','H','I', 'J','K', 'L' , '\0'};
-		   readData(test);
+//		   System.out.println(result + " : " + binaryPrint(result)); 'I','J','K', 'L'
+		   char[] test= { 'A','B','C', 'D','E','F', 'G','H', '\0'};
+		   System.out.println(readData(test));
 		   
 
 	    }
@@ -24,7 +24,9 @@ public class ReadImage {
 		  return mask;
 	  }
 	  public static char turnBitOn(char thisValue, int nBitInput) {
+		  System.out.println("Result Before : " + binaryPrint(thisValue));
 		  char result = (char) (thisValue & onMask(nBitInput));
+		  System.out.println("Result After : " + binaryPrint(result));
 		return result;
 	  }
 	  public static char turnBitOff(char thisValue, int nBitInput) {
@@ -63,15 +65,38 @@ public class ReadImage {
 		  int pixelCounter = 0;
 		  
 		  //Create a tempChar and a counter to move along the bits of tempChar
-		  char tempchar = '0';
-		  binaryPrint(tempchar);
+		  char tempChar = '\0';
+		  System.out.println("Temp Char : " +  binaryPrint(tempChar));
+		  binaryPrint(tempChar);
 		  //Read Every Character in the Raster.
 		  while (pixelsDataInput[pixelCounter] != '\0') {
 			char pixel = pixelsDataInput[pixelCounter];
 			System.out.println(pixel + " : " + binaryPrint(pixel));
-			index--;
+			//modify tempChar
+			int bit =  bitStatus(pixel, 1);
+			System.out.println("end Bit : "  + bit);
+			if(bit == 1) {
+				tempChar = turnBitOn(tempChar, index);
+			}
+			//reset for every 8	
+			if(index == 1) {
+				//reset index
+				index = 8;
+				//add tempChar to String Builder
+				sb.append(tempChar);
+				//reset tempChar to 0
+				tempChar = '0';
+				System.out.println("ReadValue : " + tempChar + " : " + binaryPrint(tempChar));
+				
+			}
+			else{
+				//Just keep modifying each bit
+				index--;
+			}
 			pixelCounter++;
 		}
+		  System.out.println("index- : " + index);
+		  System.out.println("pixelcounter : " + pixelCounter);
 		  return sb.toString();
 	  }
 }
