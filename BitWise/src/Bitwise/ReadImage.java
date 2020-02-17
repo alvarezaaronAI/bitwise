@@ -5,12 +5,12 @@ import java.io.File;
 public class ReadImage {
 
 	   public static void main(String[] args) {
-		   char value = 'F';
-		   System.out.println( value + " : " + binaryPrint(value));
-		   char result = turnBitOff(value, 2);
-		   System.out.println(result + " : " + binaryPrint(result));
-		   //char[] test= { 'A','B','C', 'D','E','F', 'G','H','I', 'J','K', 'L' , '\0'};
-		   //readData(test);
+//		   char value = 'F';
+//		   System.out.println( value + " : " + binaryPrint(value));
+//		   char result = turnBitOff(value, 2);
+//		   System.out.println(result + " : " + binaryPrint(result));
+		   char[] test= { 'A','B','C', 'D','E','F', 'G','H','I', 'J','K', 'L' , '\0'};
+		   readData(test);
 		   
 
 	    }
@@ -59,16 +59,18 @@ public class ReadImage {
 	  //read data
 	  public static String readData(char[] pixelsDataInput) {
 		  StringBuilder sb = new StringBuilder();
-		  int index = 0;
+		  int index = 8;
+		  int pixelCounter = 0;
 		  
 		  //Create a tempChar and a counter to move along the bits of tempChar
 		  char tempchar = '0';
 		  binaryPrint(tempchar);
 		  //Read Every Character in the Raster.
-		  while (pixelsDataInput[index] != '\0') {
-			char pixel = pixelsDataInput[index];
+		  while (pixelsDataInput[pixelCounter] != '\0') {
+			char pixel = pixelsDataInput[pixelCounter];
 			System.out.println(pixel + " : " + binaryPrint(pixel));
-			index++;
+			index--;
+			pixelCounter++;
 		}
 		  return sb.toString();
 	  }
