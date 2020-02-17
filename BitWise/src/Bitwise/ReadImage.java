@@ -7,7 +7,7 @@ public class ReadImage {
 	   public static void main(String[] args) {
 		   char value = 'M';
 		   System.out.println(binaryPrint(value));
-		   char result = turnBitOff(value, 7);
+		   char result = turnBitOff(value, 4);
 		   System.out.println(binaryPrint(result));
 		  
 		   
