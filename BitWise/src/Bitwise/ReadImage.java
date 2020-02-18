@@ -7,9 +7,12 @@ public class ReadImage {
 	   public static void main(String[] args) {
 //		   char value = 'F';
 //		   System.out.println( value + " : " + binaryPrint(value));
-//		   char result = turnBitOff(value, 2);
-//		   System.out.println(result + " : " + binaryPrint(result)); 'I','J','K', 'L'
-		   char[] test= { 'A','B','C', 'D','E','F', 'G','H', '\0'};
+//		   value = turnBitOff(value, 2);
+//		   System.out.println( value + " : " + binaryPrint(value));
+
+		  // System.out.println(result + " : " + binaryPrint(result)); 'I','J','K', 'L'
+		   char[] test= { 'A','B','C', 'D','E','F', 'G','H',  
+				   		  'z','y','x', 'w','e','f', 'g','h', '\0'};
 		   System.out.println(readData(test));
 		   
 
@@ -30,7 +33,9 @@ public class ReadImage {
 		return result;
 	  }
 	  public static char turnBitOff(char thisValue, int nBitInput) {
+		  System.out.println("Result Before : " + binaryPrint(thisValue));
 		  char result = (char) (thisValue & offMask(nBitInput));
+		  System.out.println("Result After : " + binaryPrint(result));
 		return result;
 	  }
 	  
@@ -65,7 +70,7 @@ public class ReadImage {
 		  int pixelCounter = 0;
 		  
 		  //Create a tempChar and a counter to move along the bits of tempChar
-		  char tempChar = '\0';
+		  char tempChar = 255;
 		  System.out.println("Temp Char : " +  binaryPrint(tempChar));
 		  binaryPrint(tempChar);
 		  //Read Every Character in the Raster.
@@ -75,8 +80,8 @@ public class ReadImage {
 			//modify tempChar
 			int bit =  bitStatus(pixel, 1);
 			System.out.println("end Bit : "  + bit);
-			if(bit == 1) {
-				tempChar = turnBitOn(tempChar, index);
+			if(bit == 0) {
+				tempChar = turnBitOff(tempChar, index);
 			}
 			//reset for every 8	
 			if(index == 1) {
@@ -85,8 +90,8 @@ public class ReadImage {
 				//add tempChar to String Builder
 				sb.append(tempChar);
 				//reset tempChar to 0
-				tempChar = '0';
 				System.out.println("ReadValue : " + tempChar + " : " + binaryPrint(tempChar));
+				tempChar = 255;
 				
 			}
 			else{
