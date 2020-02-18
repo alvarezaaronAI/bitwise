@@ -109,16 +109,30 @@ public class ReadImage {
 	}
 
 	public static char turnBitOn(char thisValue, int nBitInput) {
-		System.out.println("Result Before : " + binaryPrint(thisValue));
+		// System.out.println("Result Before : " + binaryPrint(thisValue));
 		char result = (char) (thisValue & onMask(nBitInput));
-		System.out.println("Result After : " + binaryPrint(result));
+		// System.out.println("Result After : " + binaryPrint(result));
+		return result;
+	}
+
+	public static char excluiveTurnBitOn(char thisValue, int nBitInput) {
+		// System.out.println("Result Before : " + binaryPrint(thisValue));
+		char result = (char) (thisValue ^ onMask(nBitInput));
+		// System.out.println("Result After : " + binaryPrint(result));
 		return result;
 	}
 
 	public static char turnBitOff(char thisValue, int nBitInput) {
-		System.out.println("Result Before : " + binaryPrint(thisValue));
+		// System.out.println("Result Before : " + binaryPrint(thisValue));
 		char result = (char) (thisValue & offMask(nBitInput));
-		System.out.println("Result After : " + binaryPrint(result));
+		// System.out.println("Result After : " + binaryPrint(result));
+		return result;
+	}
+
+	public static char excluiveTurnBitOff(char thisValue, int nBitInput) {
+		// System.out.println("Result Before : " + binaryPrint(thisValue));
+		char result = (char) (thisValue ^ offMask(nBitInput));
+		// System.out.println("Result After : " + binaryPrint(result));
 		return result;
 	}
 
@@ -145,19 +159,107 @@ public class ReadImage {
 		return sb.toString();
 	}
 
-	public String recoverData() {
-		StringBuilder sb = new StringBuilder();
+	public void hideData(String message) {
+		// Add -> '\0'
+		StringBuilder sb = new StringBuilder(message);
+		sb.append('\0');
+		message = sb.toString();
+		// Counter/TempChar
+		int messageLength = message.length();
+		System.out.println("Message Length : " + messageLength);
+		int currentLetter = 0;
 		int index = 8;
+		// Loop: Raster -> '\0'
+		OUTER_LOOP: for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				for (int z = 0; z < 3; z++) {
+					char letter = message.charAt(currentLetter);
+					System.out.println(
+							"Letter : " + letter + " - Index : " + index + " - Current Letter : " + currentLetter);
+					char subPixel = raster[x][y][z];
+					System.out.print(binaryPrint(subPixel) + ": ");
+					int bit = bitStatus(subPixel, 1);
+					int status = bitStatus(letter, index);
+					System.out.println("bit : " + bit + " - status : " + status);
+					// Added
+					boolean matching = (status == bit);
+					System.out.println(matching);
+					if (!matching) {
+						if (status == 1) {
+							// turn on bit
+							System.out.println("TurningBitOn B : " + binaryPrint(subPixel));
+							subPixel = turnBitOn(subPixel, index);
 
-		// Create a tempChar and a counter to move along the bits of tempChar
-	
-		char tempChar = 255;
-		OUTER_LOOP:
-		for (int x = 0; x < 3; x++) {
-			for (int y = 0; y < 3; y++) {
+							if (bitStatus(subPixel, 1) == 0) {
+								// it didnt turn on use exclusive
+								subPixel = excluiveTurnBitOn(subPixel, 1);
+							}
+							System.out.println("TurningBitOn A: " + binaryPrint(subPixel));
+						} else {
+							// turn off
+							System.out.println("TurningBitOFF B : " + binaryPrint(subPixel));
+							subPixel = turnBitOff(subPixel, index);
+							if (bitStatus(subPixel, 1) == 1) {
+								// it didnt turn off use exclusive or
+								subPixel = excluiveTurnBitOff(subPixel, 1);
+							}
+							System.out.println("TurningBitOff A : " + binaryPrint(subPixel));
+
+						}
+						// modify raster using modified subPixel
+						raster[x][y][z] = subPixel;
+						System.out.println("Raster : " + raster[x][y][z]);
+						System.out.println("-----");
+					}
+
+					// reset for every 8
+					if (index == 1) {
+						if (letter == '\0') {
+							System.out.println("Break");
+							break OUTER_LOOP;
+						}
+						// Reset: Counters/Add
+						index = 8;
+						// Next Letter
+						currentLetter++;
+
+					} else {
+						index--;
+					}
+
+				}
+			}
+		}
+		System.out.println("--------");
+		// printTest();
+		System.out.println("--------");
+		System.out.println(recoverData());
+	}
+
+	public void printTest() {
+		for (int x = 0; x < 5; x++) {
+			for (int y = 0; y < 5; y++) {
 				for (int z = 0; z < 3; z++) {
 					char subPixel = raster[x][y][z];
 					System.out.print(binaryPrint(subPixel) + " ");
+				}
+				System.out.println("");
+			}
+		}
+	}
+
+	public String recoverData() {
+		// Store : Letters
+		StringBuilder sb = new StringBuilder();
+		// Counter/TempChar
+		int index = 8;
+		char tempChar = 255;
+		// Loop: Raster -> '\0'
+		OUTER_LOOP: for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				for (int z = 0; z < 3; z++) {
+					char subPixel = raster[x][y][z];
+					System.out.print(binaryPrint(subPixel) + ": ");
 					int bit = bitStatus(subPixel, 1);
 					System.out.println(bit);
 					if (bit == 0) {
@@ -165,78 +267,34 @@ public class ReadImage {
 					}
 					// reset for every 8
 					if (index == 1) {
-						System.out.println("ReadValue : " + tempChar + " : " + binaryPrint(tempChar));
-						//check if its a null value
-						if(! (tempChar == '\0')) {	
+						System.out.println("ReadValue A: " + tempChar + " : " + binaryPrint(tempChar));
+						// check if its a null value
+						if ((tempChar == '\0')) {
 							System.out.println("break");
 							break OUTER_LOOP;
 						}
-						// reset index
-						index = 8;
-						// add tempChar to String Builder
-						
+						// Add: Letter Created
 						sb.append(tempChar);
-						// reset tempChar to 0
+						// Reset: Counters/Temp
+						index = 8;
 						tempChar = 255;
 
 					} else {
 						index--;
 					}
 				}
-				//System.out.println();
 			}
 		}
-		System.out.println("index- : " + index);
-		return sb.toString();
-	}
-
-	// read data
-	public static String readData(char[] pixelsDataInput) {
-		StringBuilder sb = new StringBuilder();
-		int index = 8;
-		int pixelCounter = 0;
-
-		// Create a tempChar and a counter to move along the bits of tempChar
-		char tempChar = 255;
-		System.out.println("Temp Char : " + binaryPrint(tempChar));
-		binaryPrint(tempChar);
-		// Read Every Character in the Raster.
-		while (pixelsDataInput[pixelCounter] != '\0') {
-			char pixel = pixelsDataInput[pixelCounter];
-			System.out.println(pixel + " : " + binaryPrint(pixel));
-			// modify tempChar
-			int bit = bitStatus(pixel, 1);
-			System.out.println("end Bit : " + bit);
-			if (bit == 0) {
-				tempChar = turnBitOff(tempChar, index);
-			}
-			// reset for every 8
-			if (index == 1) {
-				// reset index
-				index = 8;
-				// add tempChar to String Builder
-				sb.append(tempChar);
-				// reset tempChar to 0
-				System.out.println("ReadValue : " + tempChar + " : " + binaryPrint(tempChar));
-				tempChar = 255;
-
-			} else {
-				// Just keep modifying each bit
-				index--;
-			}
-			pixelCounter++;
-		}
-		System.out.println("index- : " + index);
-		System.out.println("pixelcounter : " + pixelCounter);
 		return sb.toString();
 	}
 
 	public static void main(String[] args) {
 		String blackEncoded = "C:\\PathTest\\EncodeMessages\\black_encoded.ppm";
 		String black = "C:\\PathTest\\black.ppm";
-		//File image = new File(black);
-		File image = new File(blackEncoded);
+		File image = new File(black);
+		// File image = new File(blackEncoded);
 		ReadImage program = new ReadImage(image);
-		program.recoverData();
+		program.hideData("Hello World");
+		System.out.println(program.recoverData());
 	}
 }

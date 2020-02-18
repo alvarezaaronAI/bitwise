@@ -1,9 +1,11 @@
 package Bitwise;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -25,19 +27,32 @@ public class PPMImage {
         }
     }
 
+    // Try printing it char by char, so combine the atrributes to a string then
+    // print them like that
+    // Buffered outputstream!!!
     public void writeImage(File fileName) {
         try {
+            // BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileName));
             BufferedWriter bw = new BufferedWriter(new FileWriter(fileName));
-            bw.write(this.magicNumber);
-            bw.write("" + this.width + " " + this.height + "\n");
-            bw.write("" + this.maxColorValue + "\n");
+            String intital = (this.magicNumber + "\n" + this.width + " " + this.height + "\n" + this.maxColorValue
+                    + "\n");
+            bw.write(this.magicNumber +"\n");
+            bw.write(this.width + " " + this.height + "\n");
+            bw.write(this.maxColorValue + "\n");
+            for (int count = 0; count < intital.length(); count++) {
+                char temp = intital.charAt(count);
+                // bos.write(temp);
+                bw.write(temp);
+            }
             for (int x = 0; x < raster.length; x++) {
                 for (int y = 0; y < raster[x].length; y++) {
                     for (int z = 0; z < 3; z++) {
+                        // bos.write(this.raster[x][y][z]);
                         bw.write(this.raster[x][y][z]);
                     }
                 }
             }
+            // bos.close();
             bw.close();
         } catch (IOException e) {
             // TODO Auto-generated catch block
@@ -75,6 +90,7 @@ public class PPMImage {
             // Character string = new Character((char)c); //Make the int to char to String
             // System.out.println(string.toString()); //Prints out the String
             // }
+
             for (int x = 0; x < raster.length; x++) {
                 for (int y = 0; y < raster[x].length; y++) {
                     try {
@@ -98,47 +114,121 @@ public class PPMImage {
         }
     }
 
-    public String recoverData() {
-        StringBuilder sb = new StringBuilder();
+    public void hideData(String message) {
+        // Add -> '\0'
+        StringBuilder sb = new StringBuilder(message);
+        sb.append('\0');
+        message = sb.toString();
+        // Counter/TempChar
+        int messageLength = message.length();
+        System.out.println("Message Length : " + messageLength);
+        int currentLetter = 0;
         int index = 8;
+        // Loop: Raster -> '\0'
+        OUTER_LOOP: for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                for (int z = 0; z < 3; z++) {
+                    char letter = message.charAt(currentLetter);
+                    // System.out.println(
+                    // "Letter : " + letter + " - Index : " + index + " - Current Letter : " +
+                    // currentLetter);
+                    char subPixel = raster[x][y][z];
+                    System.out.print(binaryPrint(subPixel) + ": ");
+                    int bit = bitStatus(subPixel, 1);
+                    int status = bitStatus(letter, index);
+                    // System.out.println("bit : " + bit + " - status : " + status);
+                    // Added
+                    boolean matching = (status == bit);
+                    System.out.println(matching);
+                    if (!matching) {
+                        if (status == 1) {
+                            // turn on bit
+                            // System.out.println("TurningBitOn B : " + binaryPrint(subPixel));
+                            subPixel = turnBitOn(subPixel, index);
 
-        // Create a tempChar and a counter to move along the bits of tempChar
+                            if (bitStatus(subPixel, 1) == 0) {
+                                // it didnt turn on use exclusive
+                                subPixel = excluiveTurnBitOn(subPixel, 1);
+                            }
+                            // System.out.println("TurningBitOn A: " + binaryPrint(subPixel));
+                        } else {
+                            // turn off
+                            // System.out.println("TurningBitOFF B : " + binaryPrint(subPixel));
+                            subPixel = turnBitOff(subPixel, index);
+                            if (bitStatus(subPixel, 1) == 1) {
+                                // it didnt turn off use exclusive or
+                                subPixel = excluiveTurnBitOff(subPixel, 1);
+                            }
+                            // System.out.println("TurningBitOff A : " + binaryPrint(subPixel));
 
+                        }
+                        // modify raster using modified subPixel
+                        raster[x][y][z] = subPixel;
+                        // System.out.println("Raster : " + raster[x][y][z]);
+                        // System.out.println("-----");
+                    }
+
+                    // reset for every 8
+                    if (index == 1) {
+                        if (letter == '\0') {
+                            System.out.println("Break");
+                            break OUTER_LOOP;
+                        }
+                        // Reset: Counters/Add
+                        index = 8;
+                        // Next Letter
+                        currentLetter++;
+
+                    } else {
+                        index--;
+                    }
+
+                }
+            }
+        }
+        // System.out.println("--------");
+        // // printTest();
+        // System.out.println("--------");
+        // System.out.println(recoverData());
+    }
+
+    public String recoverData() {
+        // Store : Letters
+        StringBuilder sb = new StringBuilder();
+        // Counter/TempChar
+        int index = 8;
         char tempChar = 255;
-        OUTER_LOOP: for (int x = 0; x < 3; x++) {
-            for (int y = 0; y < 3; y++) {
+        // Loop: Raster -> '\0'
+        OUTER_LOOP: for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
                 for (int z = 0; z < 3; z++) {
                     char subPixel = raster[x][y][z];
-                    System.out.print(binaryPrint(subPixel) + " ");
+                    // System.out.print(binaryPrint(subPixel) + ": ");
                     int bit = bitStatus(subPixel, 1);
-                    System.out.println(bit);
+                    // System.out.println(bit);
                     if (bit == 0) {
                         tempChar = turnBitOff(tempChar, index);
                     }
                     // reset for every 8
                     if (index == 1) {
-                        System.out.println("ReadValue : " + tempChar + " : " + binaryPrint(tempChar));
+                        // System.out.println("ReadValue A: " + tempChar + " : " + binaryPrint(tempChar));
                         // check if its a null value
-                        if (!(tempChar == '\0')) {
+                        if ((tempChar == '\0')) {
                             System.out.println("break");
                             break OUTER_LOOP;
                         }
-                        // reset index
-                        index = 8;
-                        // add tempChar to String Builder
-
+                        // Add: Letter Created
                         sb.append(tempChar);
-                        // reset tempChar to 0
+                        // Reset: Counters/Temp
+                        index = 8;
                         tempChar = 255;
 
                     } else {
                         index--;
                     }
                 }
-                // System.out.println();
             }
         }
-        System.out.println("index- : " + index);
         return sb.toString();
     }
 
@@ -159,10 +249,24 @@ public class PPMImage {
         return result;
     }
 
+    public static char excluiveTurnBitOn(char thisValue, int nBitInput) {
+        // System.out.println("Result Before : " + binaryPrint(thisValue));
+        char result = (char) (thisValue ^ onMask(nBitInput));
+        // System.out.println("Result After : " + binaryPrint(result));
+        return result;
+    }
+
     public static char turnBitOff(char thisValue, int nBitInput) {
         System.out.println("Result Before : " + binaryPrint(thisValue));
         char result = (char) (thisValue & offMask(nBitInput));
         System.out.println("Result After : " + binaryPrint(result));
+        return result;
+    }
+
+    public static char excluiveTurnBitOff(char thisValue, int nBitInput) {
+        // System.out.println("Result Before : " + binaryPrint(thisValue));
+        char result = (char) (thisValue ^ offMask(nBitInput));
+        // System.out.println("Result After : " + binaryPrint(result));
         return result;
     }
 
@@ -188,39 +292,58 @@ public class PPMImage {
         }
         return sb.toString();
     }
-    //Main
+
+    // Main
     public static void main(String[] args) {
-		String blackEncoded = "C:\\PathTest\\EncodeMessages\\black_encoded.ppm";
-		String black = "C:\\PathTest\\black.ppm";
-		//File image = new File(black);
+        String blackEncoded = "C:\\PathTest\\EncodeMessages\\black_encoded.ppm";
+        String black = "C:\\PathTest\\black.ppm";
+        // File image = new File(black);
         File image = new File(blackEncoded);
         PPMImage program;
-		// ReadImage program = new ReadImage(image);
+        // ReadImage program = new ReadImage(image);
         // program.recoverData();
-        System.out.println("Would would you like to do? \n" 
-        + "A.) Hide Message \n" 
-        + "B.) Recover Message \n"
-        + "C.) Exit");
+        System.out.println(
+                "Would would you like to do? \n" + "A.) Hide Message \n" + "B.) Recover Message \n" + "C.) Exit");
         Scanner in = new Scanner(System.in);
         String input = in.nextLine();
         System.out.println("Your Selection Was: " + input);
-        switch(input) {
-            case "A":
-                System.out.println("Please Specify the Source PPM filename: ");
-                String fileName = in.nextLine();
-                File inFile = new File(fileName);
-                System.out.println("Please Specify the Output filename: ");
-                String outputName = in.nextLine();
-                System.out.println("Please Enter a phrasee to hide: ");
-                String phrase = in.nextLine();
-                System.out.println("Your Message Was: " + phrase);
-                
-                program = new PPMImage(inFile);
-                program.
-            case "B":
-            case "C":
+        while (!(input.equals("C"))) {
+            switch (input) {
+                case "A":
+                    System.out.println("Please Specify the Source PPM filename: ");
+                    String fileName = in.nextLine();
+                    File inFile = new File(fileName);
+
+                    System.out.println("Please Specify the Output filename: ");
+                    String outputName = in.nextLine();
+                    File outFile = new File(outputName);
+
+                    System.out.println("Please Enter a phrase to hide: ");
+                    String phrase = in.nextLine();
+                    System.out.println("Your Message Was: " + phrase);
+
+                    program = new PPMImage(inFile);
+                    program.hideData(phrase);
+                    program.writeImage(outFile);
+                    break;
+                case "B":
+                    System.out.println("Please Specify the Source PPM filename to recover: ");
+                    String sourceString = in.nextLine();
+                    File sourceFile = new File(sourceString);
+                    program = new PPMImage(sourceFile);
+
+                    System.out.println("The following message has been recovered from " + sourceString + ": ");
+                    String decoded = program.recoverData();
+                    System.out.println(decoded);
+                    break;
+                case "C":
+                    break;
+            }
+            System.out.println(
+                    "Would would you like to do? \n" + "A.) Hide Message \n" + "B.) Recover Message \n" + "C.) Exit");
+            input = in.nextLine();
         }
-	}
+    }
 }
 
 /**
