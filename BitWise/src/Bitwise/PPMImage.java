@@ -7,7 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Scanner;
 
 public class PPMImage {
     String magicNumber;// First two chars, convert Characters to String
@@ -98,60 +98,48 @@ public class PPMImage {
         }
     }
 
-    // Francis Current
-    public void hideData(String message) {
-        char end = '\0';
-        String modMessage = message.concat("" + end);
-        for (int count = 0; count < modMessage.length(); count++) {
+    public String recoverData() {
+        StringBuilder sb = new StringBuilder();
+        int index = 8;
 
-            char temp0 = modMessage.charAt(count);
-            System.out.println("Current on: " + temp0);// Print Current Letter
+        // Create a tempChar and a counter to move along the bits of tempChar
 
-            int numOfBits = 8; // Determine what nth bit of message to look at
-            for (int x = 0; x < this.width; x++) {
-                for (int y = 0; y < this.height; y++) {
-                    for (int z = 0; z < 3; z++) {
-                        int statusMessage = bitStatus(temp0, numOfBits);
-                        char rasterTemp = raster[x][y][z];
-                        int rightEnd = (char) (rasterTemp & 1);
-
-                        System.out.println("Before Bit Change: " + this.raster[x][y][z]);// Show rasterTemp before change
-
-                        // check the status of the message's char & the right end of the RGB
-                        if (rightEnd != statusMessage && statusMessage == 0) {
-                            this.raster[x][y][z] = turnBitOn(this.raster[x][y][z], numOfBits);
-                            System.out.println("Turn On!");
-                        } else if (rightEnd != statusMessage && statusMessage == 1) {
-                            this.raster[x][y][z] = turnBitOff(this.raster[x][y][z], numOfBits);
-                            System.out.println("Turn Off!");
+        char tempChar = 255;
+        OUTER_LOOP: for (int x = 0; x < 3; x++) {
+            for (int y = 0; y < 3; y++) {
+                for (int z = 0; z < 3; z++) {
+                    char subPixel = raster[x][y][z];
+                    System.out.print(binaryPrint(subPixel) + " ");
+                    int bit = bitStatus(subPixel, 1);
+                    System.out.println(bit);
+                    if (bit == 0) {
+                        tempChar = turnBitOff(tempChar, index);
+                    }
+                    // reset for every 8
+                    if (index == 1) {
+                        System.out.println("ReadValue : " + tempChar + " : " + binaryPrint(tempChar));
+                        // check if its a null value
+                        if (!(tempChar == '\0')) {
+                            System.out.println("break");
+                            break OUTER_LOOP;
                         }
+                        // reset index
+                        index = 8;
+                        // add tempChar to String Builder
 
-                        System.out.println("After Bit Change: " + this.raster[x][y][z]);// Show rasterTemp after change
+                        sb.append(tempChar);
+                        // reset tempChar to 0
+                        tempChar = 255;
 
-                        // Decrements the numOfBits, but if it reaches zero, assign 8
-                        numOfBits--;
-                        if (numOfBits == 0) {
-                            numOfBits = 8;
-                        }
-                        System.out.println("N: " + numOfBits);
-                        System.out.println("*********************************************************");
+                    } else {
+                        index--;
                     }
                 }
+                // System.out.println();
             }
         }
-    }
-
-    public String recoverData() {
-        String result = "";
-        return result;
-    }
-
-    public static void main(String[] args) {
-        String fileName = "C:\\PathTest\\cat.ppm";
-        File image = new File(fileName);
-        PPMImage program = new PPMImage(image);
-        program.hideData("Hello");
-
+        System.out.println("index- : " + index);
+        return sb.toString();
     }
 
     private static char onMask(int nBitInput) {
@@ -165,17 +153,22 @@ public class PPMImage {
     }
 
     public static char turnBitOn(char thisValue, int nBitInput) {
+        System.out.println("Result Before : " + binaryPrint(thisValue));
         char result = (char) (thisValue & onMask(nBitInput));
+        System.out.println("Result After : " + binaryPrint(result));
         return result;
     }
 
     public static char turnBitOff(char thisValue, int nBitInput) {
+        System.out.println("Result Before : " + binaryPrint(thisValue));
         char result = (char) (thisValue & offMask(nBitInput));
+        System.out.println("Result After : " + binaryPrint(result));
         return result;
     }
 
     public static int bitStatus(char thisValue, int nBitInput) {
-        char result = (char) (thisValue & onMask(nBitInput));
+        int result = (char) (thisValue & onMask(nBitInput));
+
         boolean isBitOn = result > 0;
         boolean isBitOff = result == 0;
         if (isBitOn) {
@@ -190,11 +183,46 @@ public class PPMImage {
     public static String binaryPrint(char valueInput) {
         StringBuilder sb = new StringBuilder();
         for (int i = 8; i > 0; i--) {
-            sb.append(bitStatus(valueInput, i));
+            int bit = bitStatus(valueInput, i);
+            sb.append(bit);
         }
         return sb.toString();
     }
+    //Main
+    public static void main(String[] args) {
+		String blackEncoded = "C:\\PathTest\\EncodeMessages\\black_encoded.ppm";
+		String black = "C:\\PathTest\\black.ppm";
+		//File image = new File(black);
+        File image = new File(blackEncoded);
+        PPMImage program;
+		// ReadImage program = new ReadImage(image);
+        // program.recoverData();
+        System.out.println("Would would you like to do? \n" 
+        + "A.) Hide Message \n" 
+        + "B.) Recover Message \n"
+        + "C.) Exit");
+        Scanner in = new Scanner(System.in);
+        String input = in.nextLine();
+        System.out.println("Your Selection Was: " + input);
+        switch(input) {
+            case "A":
+                System.out.println("Please Specify the Source PPM filename: ");
+                String fileName = in.nextLine();
+                File inFile = new File(fileName);
+                System.out.println("Please Specify the Output filename: ");
+                String outputName = in.nextLine();
+                System.out.println("Please Enter a phrasee to hide: ");
+                String phrase = in.nextLine();
+                System.out.println("Your Message Was: " + phrase);
+                
+                program = new PPMImage(inFile);
+                program.
+            case "B":
+            case "C":
+        }
+	}
 }
+
 /**
  * char temp = 'M'; char mask = 1 << (1 - 1); System.out.println("M: " +
  * (int)temp); // Check status of the first bit of M int status = (temp & mask);
