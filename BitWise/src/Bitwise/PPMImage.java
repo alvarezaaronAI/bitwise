@@ -1,13 +1,11 @@
 package Bitwise;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
 
@@ -32,28 +30,28 @@ public class PPMImage {
     // Buffered outputstream!!!
     public void writeImage(File fileName) {
         try {
-            // BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileName));
-            BufferedWriter bw = new BufferedWriter(new FileWriter(fileName));
+            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileName));
+            // BufferedWriter bw = new BufferedWriter(new FileWriter(fileName));
             String intital = (this.magicNumber + "\n" + this.width + " " + this.height + "\n" + this.maxColorValue
                     + "\n");
-            bw.write(this.magicNumber +"\n");
-            bw.write(this.width + " " + this.height + "\n");
-            bw.write(this.maxColorValue + "\n");
+            // bw.write(this.magicNumber +"\n");
+            // bw.write(this.width + " " + this.height + "\n");
+            // bw.write(this.maxColorValue + "\n");
             for (int count = 0; count < intital.length(); count++) {
                 char temp = intital.charAt(count);
-                // bos.write(temp);
-                bw.write(temp);
+                bos.write(temp);
+                // bw.write(temp);
             }
             for (int x = 0; x < raster.length; x++) {
                 for (int y = 0; y < raster[x].length; y++) {
                     for (int z = 0; z < 3; z++) {
-                        // bos.write(this.raster[x][y][z]);
-                        bw.write(this.raster[x][y][z]);
+                        bos.write(this.raster[x][y][z]);
+                        // bw.write(this.raster[x][y][z]);
                     }
                 }
             }
-            // bos.close();
-            bw.close();
+            bos.close();
+            // bw.close();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -64,22 +62,33 @@ public class PPMImage {
     // Read file image, should be called be the constructor
     private void readImage(File image) throws IOException {
         try {
+            // Using BIS, grab magicNumber, width, height, maxColorValue
+            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(image));
 
-            BufferedReader br = new BufferedReader(new FileReader(image));// Reads the file
+            String intial = "";
+            int count = 0;
+            while (count < 3) {
+                char temp = (char) bis.read();
+                intial += "" + temp;
+                if (temp == '\n') {
+                    count++;
+                }
+            }
+            // System.out.println(intial);
 
-            this.magicNumber = br.readLine();// Magic Number
+            // Spilt up the string
+            String[] splitted = intial.split("\n");
+            this.magicNumber = splitted[0];// First two chars, convert Characters to String
 
-            String size = br.readLine();
-            String width = size.substring(0, size.indexOf(' ')); // width
-            String height = size.substring(size.indexOf(' ') + 1, size.length());// height
-            this.width = Integer.parseInt(width);
-            this.height = Integer.parseInt(height);
+            String size = splitted[1];
+            this.width = Integer.parseInt(size.substring(0, size.indexOf(' ')));// After NL(13) and Return(10)
+            this.height = Integer.parseInt(size.substring(size.indexOf(' ') + 1, size.length()));// After Space(32)
 
-            this.maxColorValue = Integer.parseInt(br.readLine()); // Max Color Value
+            this.maxColorValue = Integer.parseInt(splitted[2]);// After NL(13) and Return(10) then after 13 & 10 and the
+                                                               // image starts
 
-            // System.out.println(this.magicNumber + " " + this.width + " " + this.height +
-            // " " + this.maxColorValue);
-
+            // System.out.println(magicNumber + " " + width + " " + height + " " +
+            // maxColorValue);
             this.raster = new char[this.width][this.height][3]; // Raster
 
             // int c;
@@ -94,9 +103,9 @@ public class PPMImage {
             for (int x = 0; x < raster.length; x++) {
                 for (int y = 0; y < raster[x].length; y++) {
                     try {
-                        char temp1 = (char) br.read();
-                        char temp2 = (char) br.read();
-                        char temp3 = (char) br.read();
+                        char temp1 = (char) bis.read();
+                        char temp2 = (char) bis.read();
+                        char temp3 = (char) bis.read();
                         this.raster[x][y][0] = temp1;
                         this.raster[x][y][1] = temp2;
                         this.raster[x][y][2] = temp3;
@@ -107,9 +116,12 @@ public class PPMImage {
                     }
                 }
             }
-            br.close();
+            bis.close();
         } catch (FileNotFoundException e) {
-
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -119,11 +131,13 @@ public class PPMImage {
         StringBuilder sb = new StringBuilder(message);
         sb.append('\0');
         message = sb.toString();
+
         // Counter/TempChar
         int messageLength = message.length();
         System.out.println("Message Length : " + messageLength);
         int currentLetter = 0;
         int index = 8;
+
         // Loop: Raster -> '\0'
         OUTER_LOOP: for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
@@ -132,14 +146,17 @@ public class PPMImage {
                     // System.out.println(
                     // "Letter : " + letter + " - Index : " + index + " - Current Letter : " +
                     // currentLetter);
+
                     char subPixel = raster[x][y][z];
-                    System.out.print(binaryPrint(subPixel) + ": ");
+                    // System.out.print(binaryPrint(subPixel) + ": ");
+
                     int bit = bitStatus(subPixel, 1);
                     int status = bitStatus(letter, index);
                     // System.out.println("bit : " + bit + " - status : " + status);
                     // Added
+
                     boolean matching = (status == bit);
-                    System.out.println(matching);
+                    // System.out.println(matching);
                     if (!matching) {
                         if (status == 1) {
                             // turn on bit
@@ -163,10 +180,11 @@ public class PPMImage {
 
                         }
                         // modify raster using modified subPixel
-                        raster[x][y][z] = subPixel;
+                        
                         // System.out.println("Raster : " + raster[x][y][z]);
                         // System.out.println("-----");
                     }
+                    raster[x][y][z] = subPixel;
 
                     // reset for every 8
                     if (index == 1) {
@@ -211,10 +229,11 @@ public class PPMImage {
                     }
                     // reset for every 8
                     if (index == 1) {
-                        // System.out.println("ReadValue A: " + tempChar + " : " + binaryPrint(tempChar));
+                        // System.out.println("ReadValue A: " + tempChar + " : " +
+                        // binaryPrint(tempChar));
                         // check if its a null value
                         if ((tempChar == '\0')) {
-                            System.out.println("break");
+                            // System.out.println("break");
                             break OUTER_LOOP;
                         }
                         // Add: Letter Created
@@ -243,9 +262,9 @@ public class PPMImage {
     }
 
     public static char turnBitOn(char thisValue, int nBitInput) {
-        System.out.println("Result Before : " + binaryPrint(thisValue));
+        // System.out.println("Result Before : " + binaryPrint(thisValue));
         char result = (char) (thisValue & onMask(nBitInput));
-        System.out.println("Result After : " + binaryPrint(result));
+        // System.out.println("Result After : " + binaryPrint(result));
         return result;
     }
 
@@ -257,9 +276,9 @@ public class PPMImage {
     }
 
     public static char turnBitOff(char thisValue, int nBitInput) {
-        System.out.println("Result Before : " + binaryPrint(thisValue));
+        // System.out.println("Result Before : " + binaryPrint(thisValue));
         char result = (char) (thisValue & offMask(nBitInput));
-        System.out.println("Result After : " + binaryPrint(result));
+        // System.out.println("Result After : " + binaryPrint(result));
         return result;
     }
 
@@ -295,18 +314,14 @@ public class PPMImage {
 
     // Main
     public static void main(String[] args) {
-        String blackEncoded = "C:\\PathTest\\EncodeMessages\\black_encoded.ppm";
-        String black = "C:\\PathTest\\black.ppm";
-        // File image = new File(black);
-        File image = new File(blackEncoded);
         PPMImage program;
-        // ReadImage program = new ReadImage(image);
-        // program.recoverData();
         System.out.println(
                 "Would would you like to do? \n" + "A.) Hide Message \n" + "B.) Recover Message \n" + "C.) Exit");
         Scanner in = new Scanner(System.in);
         String input = in.nextLine();
         System.out.println("Your Selection Was: " + input);
+
+        //While Loop with the switch case
         while (!(input.equals("C"))) {
             switch (input) {
                 case "A":
@@ -326,23 +341,27 @@ public class PPMImage {
                     program.hideData(phrase);
                     program.writeImage(outFile);
                     break;
+
                 case "B":
                     System.out.println("Please Specify the Source PPM filename to recover: ");
                     String sourceString = in.nextLine();
                     File sourceFile = new File(sourceString);
                     program = new PPMImage(sourceFile);
-
+                    
                     System.out.println("The following message has been recovered from " + sourceString + ": ");
                     String decoded = program.recoverData();
                     System.out.println(decoded);
                     break;
+
                 case "C":
                     break;
             }
+            System.out.println();
             System.out.println(
                     "Would would you like to do? \n" + "A.) Hide Message \n" + "B.) Recover Message \n" + "C.) Exit");
             input = in.nextLine();
         }
+        in.close();
     }
 }
 
@@ -361,4 +380,5 @@ public class PPMImage {
  * char newRightEnd = (char) (rightEnd1 | mask2); System.out.println("Changed
  * the RGB VALUE: " + " " + newRightEnd); } else { //So if they are the same no
  * Change System.out.println("No Change"); }
+
  */
