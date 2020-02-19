@@ -288,6 +288,21 @@ public class ReadImage {
 		return sb.toString();
 	}
 
+	public String decode() {
+		StringBuilder sb = new StringBuilder();
+		char adding;
+		OUTER_LOOP: for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				for (int z = 0; z < 3; z++) {
+					char temp = this.raster[x][y][z];
+					bitStatus(temp, 1);
+				}
+			}
+		}		
+
+		return sb.toString();
+	}
+
 	public static void main(String[] args) {
 		String blackEncoded = "C:\\PathTest\\EncodeMessages\\black_encoded.ppm";
 		String black = "C:\\PathTest\\black.ppm";

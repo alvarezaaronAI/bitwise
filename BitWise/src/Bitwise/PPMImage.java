@@ -161,7 +161,7 @@ public class PPMImage {
                         if (status == 1) {
                             // turn on bit
                             // System.out.println("TurningBitOn B : " + binaryPrint(subPixel));
-                            subPixel = turnBitOn(subPixel, index);
+                            subPixel = turnBitOn(subPixel, 1);
 
                             if (bitStatus(subPixel, 1) == 0) {
                                 // it didnt turn on use exclusive
@@ -171,7 +171,7 @@ public class PPMImage {
                         } else {
                             // turn off
                             // System.out.println("TurningBitOFF B : " + binaryPrint(subPixel));
-                            subPixel = turnBitOff(subPixel, index);
+                            subPixel = turnBitOff(subPixel, 1);
                             if (bitStatus(subPixel, 1) == 1) {
                                 // it didnt turn off use exclusive or
                                 subPixel = excluiveTurnBitOff(subPixel, 1);
@@ -180,7 +180,7 @@ public class PPMImage {
 
                         }
                         // modify raster using modified subPixel
-                        
+
                         // System.out.println("Raster : " + raster[x][y][z]);
                         // System.out.println("-----");
                     }
@@ -237,6 +237,7 @@ public class PPMImage {
                             break OUTER_LOOP;
                         }
                         // Add: Letter Created
+                        // System.out.println("" + tempChar);
                         sb.append(tempChar);
                         // Reset: Counters/Temp
                         index = 8;
@@ -321,7 +322,7 @@ public class PPMImage {
         String input = in.nextLine();
         System.out.println("Your Selection Was: " + input);
 
-        //While Loop with the switch case
+        // While Loop with the switch case
         while (!(input.equals("C"))) {
             switch (input) {
                 case "A":
@@ -347,7 +348,7 @@ public class PPMImage {
                     String sourceString = in.nextLine();
                     File sourceFile = new File(sourceString);
                     program = new PPMImage(sourceFile);
-                    
+
                     System.out.println("The following message has been recovered from " + sourceString + ": ");
                     String decoded = program.recoverData();
                     System.out.println(decoded);
@@ -380,5 +381,5 @@ public class PPMImage {
  * char newRightEnd = (char) (rightEnd1 | mask2); System.out.println("Changed
  * the RGB VALUE: " + " " + newRightEnd); } else { //So if they are the same no
  * Change System.out.println("No Change"); }
-
+ * 
  */
